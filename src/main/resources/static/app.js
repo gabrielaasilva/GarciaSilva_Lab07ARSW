@@ -15,7 +15,7 @@ var app = (function () {
         ctx.beginPath();
         ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
         ctx.stroke();
-        stompClient.send("/topic/newpoint", {}, JSON.stringify(point));
+        
     };
     
     
@@ -45,8 +45,26 @@ var app = (function () {
         });
 
     };
+
+    function draw() {
+        points.map((point) => {
+            let color = point.color.split(",");
+            fill(color[0], color[1], color[2]);
+            ellipse(point.x, point.y, 20, 20);
+        })
+        if (mouseIsPressed === true) {
+            fill(0,0,0);
+            ellipse(mouseX, mouseY, 20, 20);
+            addPoint({x: mouseX, y: mouseY, color:"0,0,0"});
+        }
+        if (mouseIsPressed === false) {
+            fill(255, 255, 255);
+        }
+    }
     
-    
+    function setup() {
+        createCanvas(800, 600);
+    }
 
     return {
 
@@ -55,12 +73,15 @@ var app = (function () {
             
             //websocket connection
             connectAndSubscribe();
+            setup();
+            draw();
         },
 
         publishPoint: function(px,py){
             var pt=new Point(px,py);
             console.info("publishing point at "+pt);
             addPointToCanvas(pt);
+            stompClient.send("/topic/newpoint", {}, JSON.stringify(point));
 
             //publicar el evento
         },
@@ -73,5 +94,9 @@ var app = (function () {
             console.log("Disconnected");
         }
     };
+
+
+
+
 
 })();
